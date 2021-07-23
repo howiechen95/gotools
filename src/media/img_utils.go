@@ -8,12 +8,13 @@ import (
 	"image/png"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
-func ResizeJpg(fileUri string, width, height uint) {
+func ResizeJpg(srcFile, outFile string, width, height uint) {
 	// open "test.jpg"
-	file, err := os.Open(fileUri)
+	file, err := os.Open(srcFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,7 +30,8 @@ func ResizeJpg(fileUri string, width, height uint) {
 	// and preserve aspect ratio
 	m := resize.Resize(width, height, img, resize.Lanczos3)
 
-	out, err := os.Create(fmt.Sprintf("test_resized_%d.jpg", time.Now().Unix()))
+	outFile = getFileName(file.Name(), width, height)
+	out, err := os.Create(outFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,9 +41,9 @@ func ResizeJpg(fileUri string, width, height uint) {
 	jpeg.Encode(out, m, nil)
 }
 
-func ResizePng(fileUri string, width, height uint) {
+func ResizePng(srcFile, outFile string, width, height uint) {
 	// open "test.jpg"
-	file, err := os.Open(fileUri)
+	file, err := os.Open(srcFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,8 +58,8 @@ func ResizePng(fileUri string, width, height uint) {
 	// resize to width 1000 using Lanczos resampling
 	// and preserve aspect ratio
 	m := resize.Resize(width, height, img, resize.Lanczos3)
-
-	out, err := os.Create(fmt.Sprintf("test_resized_%d.png", time.Now().Unix()))
+	outFile = getFileName(file.Name(), width, height)
+	out, err := os.Create(outFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,9 +69,26 @@ func ResizePng(fileUri string, width, height uint) {
 	png.Encode(out, m)
 }
 
-func ResizeImage1(fileUri string, width, height uint) {
+func getFileName(srcName string, width, height uint) string {
+	if srcName == "" {
+		return ""
+	}
+	pathArr := strings.Split(srcName, "/")
+	fileName := pathArr[0]
+	if len(pathArr) > 1 {
+		fileName = pathArr[len(pathArr)-1]
+	}
+	arr := strings.Split(fileName, ".")
+	if len(arr) > 1 {
+		return fmt.Sprintf("%s_%d_%dX%d.%s", arr[0], time.Now().Unix(), width, height, arr[len(arr)-1])
+	} else {
+		return fmt.Sprintf("%s_%d_%dX%d", arr[0], time.Now().Unix(), width, height)
+	}
+}
+
+func ResizeImage1(srcFile, outFile string, width, height uint) {
 	// open "test.jpg"
-	file, err := os.Open(fileUri)
+	file, err := os.Open(srcFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -85,7 +104,10 @@ func ResizeImage1(fileUri string, width, height uint) {
 	// and preserve aspect ratio
 	m := resize.Resize(width, height, img, resize.Lanczos3)
 
-	out, err := os.Create(fmt.Sprintf("test_resized_%d.jpg", time.Now().Unix()))
+	if outFile == "" {
+		outFile = fmt.Sprintf("%s_%d.jpg", strings.Split(file.Name(), ".")[0], time.Now().Unix())
+	}
+	out, err := os.Create(outFile)
 	if err != nil {
 		log.Fatal(err)
 	}
