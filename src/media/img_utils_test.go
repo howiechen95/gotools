@@ -10,9 +10,11 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestResizePng(t *testing.T) {
@@ -111,9 +113,34 @@ func encode(inputName string, file *os.File, rgba *image.RGBA) {
 
 func TestSetRGB(t *testing.T) {
 	//source := "./image/test01.png" 		//输入图片
-	target := "./image/result.png" //输出图片
-	x := 400
-	y := 400
+	target := fmt.Sprintf("./image/result_%d.png", time.Now().Unix()) //输出图片
+	x := 2000
+	y := 2000
+
+	blackRGB := color.RGBA{
+		uint8(0),
+		uint8(0),
+		uint8(0),
+		//uint8((i + j) % 255),
+		//uint8((i + j) % 255),
+		uint8(255),
+	}
+	whiteRGB := color.RGBA{
+		uint8(255),
+		uint8(255),
+		uint8(255),
+		//uint8((i + j) % 255),
+		//uint8((i + j) % 255),
+		uint8(255),
+	}
+
+	bit := make([][]int, x)
+	for i := 0; i < x; i++ {
+		bit[i] = make([]int, y)
+		for j := 0; j < y; j++ {
+			bit[i][j] = rand.Intn(2)
+		}
+	}
 
 	newRgba := image.NewRGBA(image.Rect(0, 0, x, y)) //new 一个新的图片
 	for i := 0; i < x; i++ {
@@ -128,15 +155,12 @@ func TestSetRGB(t *testing.T) {
 			//r_uint8 = 255 - r_uint8
 			//g_uint8 = 255 - g_uint8
 			//b_uint8 = 255 - b_uint8
-			p1 := color.RGBA{
-				uint8(i % 255),
-				uint8(j % 255),
-				uint8((i + j) % 255),
-				uint8((i + j) % 255),
+			p := whiteRGB
+			if bit[i][j] > 0 {
+				p = blackRGB
 			}
 			//newRgba.SetRGBA(i, j, color.RGBA{r_uint8, g_uint8, b_uint8, a_uint8}) //设置像素点
-			newRgba.SetRGBA(i, j, p1) //设置像素点
-
+			newRgba.SetRGBA(i, j, p) //设置像素点
 		}
 	}
 
@@ -144,4 +168,10 @@ func TestSetRGB(t *testing.T) {
 	defer f.Close()
 	png.Encode(f, newRgba)
 	//encode(source, f, newRgba)
+}
+
+func TestRam(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		t.Log(rand.Intn(2))
+	}
 }
